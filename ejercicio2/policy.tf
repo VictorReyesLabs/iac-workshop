@@ -3,14 +3,15 @@
 # ===========================================
 data "azurerm_subscription" "current" {}
 
+
 # ===========================================
 # Definir Policy Definition para tags obligatorios
 # ===========================================
 resource "azurerm_policy_definition" "require_tags" {
-  name         = "require-tags"
+  name         = "require-tags-${random_string.suffix.result}" # <- sufijo único
   policy_type  = "Custom"
   mode         = "All"
-  display_name = "Require Environment and Owner tags"
+  display_name = "Require Environment and Owner tags ${random_string.suffix.result}"
   description  = "Todos los recursos deben tener los tags Environment y Owner"
 
   policy_rule = <<POLICY
@@ -34,21 +35,19 @@ resource "azurerm_policy_definition" "require_tags" {
 POLICY
 }
 
-
 # ===========================================
 # Asignar la policy a nivel de suscripción
 # ===========================================
 resource "azurerm_subscription_policy_assignment" "require_tags_assignment" {
-  name                 = "require-tags-assignment"
+  name                 = "require-tags-assignment-${random_string.suffix.result}" # <- sufijo único
   subscription_id      = data.azurerm_subscription.current.id
   policy_definition_id = azurerm_policy_definition.require_tags.id
   description          = "Asignación de política para requerir tags 'Environment' y 'Owner'"
-  display_name         = "Requerir tags obligatorios"
+  display_name         = "Requerir tags obligatorios ${random_string.suffix.result}"
 
-  location = "eastus" # <- esto es obligatorio cuando se asigna identity
+  location = "eastus" # requerido porque hay identity
 
   identity {
     type = "SystemAssigned"
   }
 }
-
